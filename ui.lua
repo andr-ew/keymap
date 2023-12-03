@@ -2,13 +2,18 @@ local Keymap = { grid = {} }
 
 function Keymap.grid.poly()
    local _momentaries = Grid.momentaries()
+   local _toggles = Grid.toggles()
 
    return function(props)
         local keymap = props.keymap
 
         props.state = crops.of_variable(keymap.keys, keymap.set_keys)
 
-       _momentaries(props)
+        if props.mode == 'latch' then
+            _toggles(props)
+        else
+           _momentaries(props)
+        end
     end
 end
 
