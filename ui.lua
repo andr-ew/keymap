@@ -24,21 +24,13 @@ function Keymap.grid.mono()
     return function(props)
         local keymap = props.keymap
 
-        local momentaries_props = {}
-        local integer_props = {}
-        for k,v in pairs(props) do 
-            momentaries_props[k] = props[k] 
-            integer_props[k] = props[k] 
-        end
-
-        momentaries_props.state = crops.of_variable(keymap.keys, keymap.set_keys)
-        integer_props.state = crops.of_variable(keymap.index)
-
         if crops.mode == 'input' then
-            _momentaries(momentaries_props)
+            props.state = crops.of_variable(keymap.keys, keymap.set_keys)
+            _momentaries(props)
         elseif crops.mode == 'redraw' then
+            props.state = crops.of_variable(keymap.index)
             if keymap.gate > 0 then
-                _integer(integer_props)
+                _integer(props)
             end
         end
     end
