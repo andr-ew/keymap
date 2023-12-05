@@ -9,10 +9,6 @@ function Keymap.grid.poly()
     local _momentaries = Grid.momentaries()
         
     return function(props)
-        local keymap = props.keymap
-
-        props.state = crops.of_variable(keymap.keys, keymap.set_keys)
-
         if crops.mode == 'input' then
             local x, y, z = table.unpack(crops.args) 
             local idx = Grid.util.xy_to_index(props, x, y)
@@ -37,7 +33,7 @@ function Keymap.grid.poly()
 
                     if #held == 3 then
                         for _,iidx in ipairs(held) do chord_add(iidx) end
-                    elseif #held > 2 then
+                    elseif #held > 3 then
                         chord_add(idx)
                     end
                 elseif z==0 then
@@ -62,19 +58,38 @@ function Keymap.grid.poly()
 end
 
 function Keymap.grid.mono()
-    local _momentaries = Grid.momentaries()
-    local _integer = Grid.integer()
+    local held = {}
 
     return function(props)
-        local keymap = props.keymap
+        if crops.device == 'grid' then
+            if crops.mode == 'input' then
+                local x, y, z = table.unpack(crops.args)
+                local n = Grid.util.xy_to_index(props, x, y)
 
-        if crops.mode == 'input' then
-            props.state = crops.of_variable(keymap.keys, keymap.set_keys)
-            _momentaries(props)
-        elseif crops.mode == 'redraw' then
-            props.state = crops.of_variable(keymap.index)
-            if keymap.gate > 0 then
-                _integer(props)
+                if n then
+                    if z==1 then
+                        table.insert(held, n)
+                    elseif z==0 then
+                        table.remove(held, tab.key(held, n))
+                    end
+
+                    if #held > 0 then
+                        crops.set_state(props.state, { held[#held], 1 })
+                    else
+                        local gate = props.mode == 'latch' and 1 or 0
+                        crops.set_state_at(props.state, 2, gate)
+                    end
+                end
+            elseif crops.mode == 'redraw' then
+                local g = crops.handler
+
+                local index, gate = table.unpack(crops.get_state(props.state) or { 1, 0 })
+                local lvl = props.levels[gate + 1]
+
+                if lvl > 0 then
+                    local x, y = Grid.util.index_to_xy(props, index)
+                    g:led(x, y, lvl)
+                end
             end
         end
     end

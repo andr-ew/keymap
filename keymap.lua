@@ -62,9 +62,23 @@ function poly.new(args)
     return self
 end
 
+function poly:get()
+    return self.keys
+end
+
+function poly:set(new)
+    self.set_keys(new)
+end
+
 function poly:clear()
     self.set_keys_silent({})
     self.pattern:stop()
+end
+
+function poly:set_latch() end
+
+function poly:get_state()
+    return { self.keys, self.set_keys }
 end
 
 local mono = {}
@@ -78,46 +92,46 @@ function mono.new(args)
     self.size = args.size or 128
     self.pattern = args.pattern
         
-    self.keys = {}
-    self.index = 1
-    self.gate = 0
+    self.index_gate = { 1, 0 }
 
-    local function set_idx_gate(idx, gt)
-        self.index = idx
-        self.gate = gt
-        self.action(self.index, self.gate)
+    local function set_index_gate(new)
+        self.index_gate = new
+        self.action(table.unpack(new))
 
         crops.dirty.grid = true
         crops.dirty.screen = true
     end
     
-    args.pattern.process = function(e) set_idx_gate(table.unpack(e)) end
-    local set_idx_gate_wr = function(idx, gt)
-        set_idx_gate(idx, gt)
-        args.pattern:watch({ idx, gt })
+    args.pattern.process = set_index_gate 
+    local set_index_gate_wr = function(new)
+        set_index_gate(new)
+        args.pattern:watch(new)
     end
 
-    local set_states = function(value)
-        local gt = 0
-        local idx = self.index 
+    --TODO: move this logic to ./ui.lua
+    -- local set_states = function(value)
+    --     local gt = 0
+    --     local idx = self.index 
 
-        for i = args.size, 1, -1 do
-            local v = value[i] or 0
+    --     for i = args.size, 1, -1 do
+    --         local v = value[i] or 0
 
-            if v > 0 then
-                gt = 1
-                idx = i
-                break;
-            end
-        end
+    --         if v > 0 then
+    --             gt = 1
+    --             idx = i
+    --             break;
+    --         end
+    --     end
 
-        self.keys = value
-        set_idx_gate_wr(idx, gt)
-    end
+    --     self.keys = value
+    --     set_idx_gate_wr(idx, gt)
+    -- end
 
-    local clear = function() set_idx_gate(self.index, 0) end
+    local clear = function() set_index_gate({ self.index_gate[1], 0 }) end
     local snapshot = function()
-        if self.gate > 0 then set_idx_gate_wr(self.index, self.gate) end
+        if self.index_gate[2] > 0 then 
+            set_index_gate_wr({ self.index_gate[1], self.index_gate[2] }) 
+        end
     end
 
     local handlers = {
@@ -129,17 +143,32 @@ function mono.new(args)
 
     args.pattern:set_all_hooks(handlers)
     
-    self.set_keys = set_states
-    self.set_idx_gate_silent = set_idx_gate
+    self.set_index_gate = set_index_gate_wr
+    self.set_index_gate_silent = set_index_gate
 
     return self
 end
 
+function mono:get()
+    return self.index_gate
+end
+
+function mono:set(new)
+    self.set_index_gate(new)
+end
+
 function mono:clear()
-    self.keys = {}
-    self.set_idx_gate_silent(self.index, 0)
+    self.set_index_gate_silent({ self.index_gate[1], 0 })
 
     self.pattern:stop()
+end
+
+function mono:set_latch(latch)
+    self.set_index_gate({ self.index_gate[1], latch and 1 or 0 })
+end
+
+function mono:get_state()
+    return { self.index_gate, self.set_index_gate }
 end
 
 keymap.poly = poly
