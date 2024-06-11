@@ -1,14 +1,14 @@
 local keymap = {}
 
-local poly = {}
-poly.__index = poly
+keymap.allocator = {}
+keymap.allocator.__index = keymap.allocator
 
-function poly.new(args)
+function keymap.allocator.new(args)
     local self = {}
-    setmetatable(self, poly)
+    setmetatable(self, keymap.allocator)
         
-    self.action_on = args.action_on or function(idx) end
-    self.action_off = args.action_off or function(idx) end
+    -- self.action_on = args.action_on or function(idx) end
+    -- self.action_off = args.action_off or function(idx) end
     self.size = args.size or 128
     self.pattern = args.pattern
 
@@ -62,116 +62,23 @@ function poly.new(args)
     return self
 end
 
-function poly:get()
+function keymap.allocator:get()
     return self.keys
 end
 
-function poly:set(new)
+function keymap.allocator:set(new)
     self.set_keys(new)
 end
 
-function poly:clear()
+function keymap.allocator:clear()
     self.set_keys_silent({})
     self.pattern:stop()
 end
 
-function poly:set_latch() end
+function keymap.allocator:set_latch() end
 
-function poly:get_state()
+function keymap.allocator:get_state()
     return { self.keys, self.set_keys }
 end
-
-local mono = {}
-mono.__index = mono
-
-function mono.new(args)
-    local self = {}
-    setmetatable(self, mono)
-        
-    self.action = args.action or function(idx, gt) end
-    self.size = args.size or 128
-    self.pattern = args.pattern
-        
-    self.index_gate = { 1, 0 }
-
-    local function set_index_gate(new)
-        self.index_gate = new
-        self.action(table.unpack(new))
-
-        crops.dirty.grid = true
-        crops.dirty.screen = true
-    end
-    
-    args.pattern.process = set_index_gate 
-    local set_index_gate_wr = function(new)
-        set_index_gate(new)
-        args.pattern:watch(new)
-    end
-
-    --TODO: move this logic to ./ui.lua
-    -- local set_states = function(value)
-    --     local gt = 0
-    --     local idx = self.index 
-
-    --     for i = args.size, 1, -1 do
-    --         local v = value[i] or 0
-
-    --         if v > 0 then
-    --             gt = 1
-    --             idx = i
-    --             break;
-    --         end
-    --     end
-
-    --     self.keys = value
-    --     set_idx_gate_wr(idx, gt)
-    -- end
-
-    local clear = function() set_index_gate({ self.index_gate[1], 0 }) end
-    local snapshot = function()
-        if self.index_gate[2] > 0 then 
-            set_index_gate_wr({ self.index_gate[1], self.index_gate[2] }) 
-        end
-    end
-
-    local handlers = {
-        pre_clear = clear,
-        pre_rec_stop = snapshot,
-        post_rec_start = snapshot,
-        post_stop = clear,
-    }
-
-    args.pattern:set_all_hooks(handlers)
-    
-    self.set_index_gate = set_index_gate_wr
-    self.set_index_gate_silent = set_index_gate
-
-    return self
-end
-
-function mono:get()
-    return self.index_gate
-end
-
-function mono:set(new)
-    self.set_index_gate(new)
-end
-
-function mono:clear()
-    self.set_index_gate_silent({ self.index_gate[1], 0 })
-
-    self.pattern:stop()
-end
-
-function mono:set_latch(latch)
-    self.set_index_gate({ self.index_gate[1], latch and 1 or 0 })
-end
-
-function mono:get_state()
-    return { self.index_gate, self.set_index_gate }
-end
-
-keymap.poly = poly
-keymap.mono = mono
 
 return keymap
