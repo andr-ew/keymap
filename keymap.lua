@@ -1,5 +1,7 @@
 local keymap = {}
 
+local keymap = {}
+
 local poly = {}
 poly.__index = poly
 
