@@ -14,15 +14,16 @@ function poly.new(args)
 
     self.keys = {}
         
-    local set_keys = function(value)
+    local set_keys = function(data)
+        local value, silent = table.unpack(data)
         local news, olds = value, self.keys
 
         for i = 1, self.size do
             local new = news[i] or 0
             local old = olds[i] or 0
 
-            if new==1 and old==0 then self.action_on(i)
-            elseif new==0 and old==1 then self.action_off(i) end
+            if new==1 and old==0 then self.action_on(i, silent)
+            elseif new==0 and old==1 then self.action_off(i, silent) end
         end
 
         self.keys = news
@@ -32,12 +33,15 @@ function poly.new(args)
 
     self.pattern.process = set_keys
 
-    local set_keys_wr = function(value)
-        set_keys(value)
-        self.pattern:watch(value)
+    local set_keys_wr = function(value, silent)
+        local data = { value, silent }
+        set_keys(data)
+        self.pattern:watch(data)
     end
 
-    local clear = function() set_keys({}) end
+    local set_keys_bypass = function(value, silent) set_keys({ value, silent }) end
+
+    local clear = function() set_keys_bypass({}) end
     local snapshot = function()
         local has_keys = false
         for i = 1, self.size do if (self.keys[i] or 0) > 0 then  
@@ -57,7 +61,7 @@ function poly.new(args)
     self.pattern:set_all_hooks(handlers)
 
     self.set_keys = set_keys_wr
-    self.set_keys_silent = set_keys
+    self.set_keys_bypass = set_keys_bypass 
 
     return self
 end
@@ -66,12 +70,12 @@ function poly:get()
     return self.keys
 end
 
-function poly:set(new)
-    self.set_keys(new)
+function poly:set(new, silent)
+    self.set_keys(new, silent)
 end
 
-function poly:clear()
-    self.set_keys_silent({})
+function poly:clear(silent)
+    self.set_keys_bypass({}, silent)
     self.pattern:stop()
 end
 
@@ -144,7 +148,7 @@ function mono.new(args)
     args.pattern:set_all_hooks(handlers)
     
     self.set_index_gate = set_index_gate_wr
-    self.set_index_gate_silent = set_index_gate
+    self.set_index_gate_bypass = set_index_gate
 
     return self
 end
@@ -158,7 +162,7 @@ function mono:set(new)
 end
 
 function mono:clear()
-    self.set_index_gate_silent({ self.index_gate[1], 0 })
+    self.set_index_gate_bypass({ self.index_gate[1], 0 })
 
     self.pattern:stop()
 end
