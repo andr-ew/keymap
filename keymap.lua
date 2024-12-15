@@ -72,8 +72,9 @@ function poly:get()
     return self.keys
 end
 
-function poly:set(new, silent)
-    self.set_keys(new, silent)
+function poly:set(new, silent, watch)
+    if watch == false then self.set_keys_bypass(new, silend)
+    else self.set_keys(new, silent) end
 end
 
 function poly:clear(silent)
