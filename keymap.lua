@@ -56,7 +56,7 @@ function poly.new(args)
 
     local set_keys_bypass = function(silent, value) set_keys({ value, silent }) end
 
-    local clear = function() set_keys_bypass({}) end
+    local clear = function() set_keys_bypass(nil, {}) end
     local snapshot = function()
         local has_keys = false
         for i = 1, self.size do if (self.keys[i] or 0) > 0 then  
