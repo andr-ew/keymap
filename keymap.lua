@@ -20,12 +20,25 @@ function poly.new(args)
         local value, silent = table.unpack(data)
         local news, olds = value, self.keys
 
+        --TODO: optimization - only need to loop once for human input
+        -- for i = 1, self.size do
+        --     local new = news[i] or 0
+        --     local old = olds[i] or 0
+
+        --     if new==1 and old==0 then self.action_on(i, silent)
+        --     elseif new==0 and old==1 then self.action_off(i, silent) end
+        -- end
         for i = 1, self.size do
             local new = news[i] or 0
             local old = olds[i] or 0
 
-            if new==1 and old==0 then self.action_on(i, silent)
-            elseif new==0 and old==1 then self.action_off(i, silent) end
+            if new==0 and old==1 then self.action_off(i, silent) end
+        end
+        for i = 1, self.size do
+            local new = news[i] or 0
+            local old = olds[i] or 0
+
+            if new==1 and old==0 then self.action_on(i, silent) end
         end
 
         self.keys = news
@@ -35,13 +48,13 @@ function poly.new(args)
 
     self.pattern.process = set_keys
 
-    local set_keys_wr = function(value, silent)
+    local set_keys_wr = function(silent, value)
         local data = { value, silent }
         set_keys(data)
         self.pattern:watch(data)
     end
 
-    local set_keys_bypass = function(value, silent) set_keys({ value, silent }) end
+    local set_keys_bypass = function(silent, value) set_keys({ value, silent }) end
 
     local clear = function() set_keys_bypass({}) end
     local snapshot = function()
@@ -50,7 +63,7 @@ function poly.new(args)
             has_keys = true; break
         end end
 
-        if has_keys then set_keys_wr(self.keys) end
+        if has_keys then set_keys_wr(false, self.keys) end
     end
 
     local handlers = {
@@ -73,19 +86,19 @@ function poly:get()
 end
 
 function poly:set(new, silent, watch)
-    if watch == false then self.set_keys_bypass(new, silend)
-    else self.set_keys(new, silent) end
+    if watch == false then self.set_keys_bypass(silent, new)
+    else self.set_keys(silent, new) end
 end
 
 function poly:clear(silent)
-    self.set_keys_bypass({}, silent)
+    self.set_keys_bypass(silent, {})
     self.pattern:stop()
 end
 
 function poly:set_latch() end
 
-function poly:get_state()
-    return { self.keys, self.set_keys }
+function poly:get_state(silent)
+    return { self.keys, self.set_keys, silent }
 end
 
 local mono = {}
