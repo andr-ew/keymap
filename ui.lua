@@ -35,13 +35,14 @@ function Keymap.grid.poly()
                     local function chord_release()
                         if latch then 
                             crops.set_state(props.state, que) 
-                            if props.action_latch_chord then props.action_latch_chord() end
+                            if props.action_latch then props.action_latch() end
                         end
                         que = {}
                     end
                     local function tap(idx) if latch then 
                         local old = crops.get_state_at(props.state, idx) or 0
                         crops.set_state_at(props.state, idx, old ~ 1)
+                        if props.action_latch then props.action_latch() end
                     end end
 
                     if z==1 then
