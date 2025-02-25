@@ -90,6 +90,14 @@ function poly:set(new, silent, watch)
     else self.set_keys(silent, new) end
 end
 
+function poly:set_at(idx, value, silent, watch)
+    local new = {}
+    for i,v in pairs(self.keys) do new[i] = v end
+    new[idx] = value
+
+    self:set(new, silent, watch)
+end
+
 function poly:clear(silent)
     self.set_keys_bypass(silent, {})
     self.pattern:stop()
