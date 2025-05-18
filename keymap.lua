@@ -13,6 +13,7 @@ function poly.new(args)
     self.action_off = args.action_off or function(idx) end
     self.size = args.size or 128
     self.pattern = args.pattern
+    self.voicing = 'poly'
 
     self.keys = {}
         
@@ -119,6 +120,7 @@ function mono.new(args)
     self.action = args.action or function(idx, gt) end
     self.size = args.size or 128
     self.pattern = args.pattern
+    self.voicing = 'mono'
         
     self.index_gate = { 1, 0 }
 
@@ -181,8 +183,9 @@ function mono:get()
     return self.index_gate
 end
 
-function mono:set(new)
-    self.set_index_gate(new)
+function mono:set(new, silent, watch)
+    if watch == false then self.set_index_gate_bypass(new)
+    else self.set_index_gate(new) end
 end
 
 function mono:clear()
