@@ -101,7 +101,7 @@ end
 
 function poly:clear(silent)
     self.set_keys_bypass(silent, {})
-    self.pattern:stop()
+    -- self.pattern:stop()
 end
 
 function poly:set_latch() end
@@ -191,7 +191,7 @@ end
 function mono:clear()
     self.set_index_gate_bypass({ self.index_gate[1], 0 })
 
-    self.pattern:stop()
+    -- self.pattern:stop()
 end
 
 function mono:set_latch(latch)

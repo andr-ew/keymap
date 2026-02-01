@@ -84,7 +84,7 @@ function Keymap.grid.poly()
                     local x_inner, y_inner = Grid.util.index_to_xy(props_inner, i)
                     -- local x_inner = x_outer - props.x + 1 + view_x
                     -- local y_inner = y_outer - props.y + 1 + view_y
-                    local x_outer = x_inner + props.x - 1 - view_x
+                    local x_outer = x_inner + props.x - 1 - view_x + (props.offset or 0)
                     local y_outer = y_inner + props.y - 1 - view_y
 
                     if
@@ -150,7 +150,7 @@ function Keymap.grid.mono()
 
                 if lvl > 0 then
                     local x_inner, y_inner = Grid.util.index_to_xy(props_inner, index)
-                    local x_outer = x_inner + props.x - 1 - view_x
+                    local x_outer = x_inner + props.x - 1 - view_x + (props.offset or 0)
                     local y_outer = y_inner + props.y - 1 - view_y
 
                     if
